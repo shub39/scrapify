@@ -1,29 +1,43 @@
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
 import csv
 import time
 import pyexcel
 
 
-def get_student_details(name):
+def get_student_details(name_or_roll):
     try:
         data = pyexcel.get_sheet(file_name='DS_DATA.ods')
         name_column_index = None
+        roll_column_index = None
         for index, cell_value in enumerate(data.row[0]):
             if cell_value.lower() == 'name':
                 name_column_index = index
-                break
-        if name_column_index is None:
+            elif cell_value.lower() == 'uni roll':
+                roll_column_index = index
+        if name_column_index is None or roll_column_index is None:
             return None  
         for row_index, row in enumerate(data):
-            if row_index == 0:  
+            if row_index == 0:
                 continue
-            if row[name_column_index].lower() == name.lower():
-                student_details = {}
-                for col_index, col_name in enumerate(data.row[0]):
-                    student_details[col_name] = row[col_index]
-                return student_details        
-                return None 
+            if name_or_roll.isdigit():
+                if int(name_or_roll) > 10:
+                    roll = "120305230" + name_or_roll
+                else:
+                    roll = "1203052300" + name_or_roll
+                if str(roll) == str(row[roll_column_index]):
+                    student_details = {}
+                    for col_index, col_name in enumerate(data.row[0]):
+                        student_details[col_name] = row[col_index]
+                    return student_details
+            else:
+                if row[name_column_index].lower() == name_or_roll.lower():
+                    student_details = {}
+                    for col_index, col_name in enumerate(data.row[0]):
+                        student_details[col_name] = row[col_index]
+                    return student_details
+        return None  
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
@@ -56,3 +70,47 @@ def write_data_to_csv(file_path, data):
         writer.writerow(['Link', 'Content']) 
         for link, content in data.items():
             writer.writerow([link, content])
+            
+def get_nearest_birthday():
+    try:
+        data = pyexcel.get_sheet(file_name='DS_DATA.ods')
+        bday_column_index = None
+        name_column_index = None
+        for index, cell_value in enumerate(data.row[0]):
+            if cell_value.lower() == 'bday':
+                bday_column_index = index
+            elif cell_value.lower() == 'name':
+                name_column_index = index
+        if bday_column_index is None or name_column_index is None:
+            return None, None  
+        today = datetime.now().date()
+        nearest_birthday = None
+        nearest_days = float('inf')
+        nearest_name = None
+        for row_index, row in enumerate(data):
+            if row_index == 0:
+                continue
+            bday_str = str(row[bday_column_index])
+            try:
+                bday = datetime.strptime(bday_str, '%Y-%m-%d').date()  
+            except ValueError:
+                try:
+                    bday = datetime.strptime(bday_str, '%Y/%m/%d').date()
+                except ValueError:
+                    continue 
+            bday = bday.replace(year=today.year)
+            if bday < today:
+                bday = bday.replace(year=today.year + 1)
+            days_until_bday = (bday - today).days
+            if days_until_bday < nearest_days:
+                nearest_days = days_until_bday
+                nearest_birthday = bday
+                nearest_name = row[name_column_index]
+        if nearest_birthday:
+            nearest_birthday_str = nearest_birthday.strftime('%d-%m')  
+            return nearest_name, nearest_birthday_str
+        else:
+            return None, None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None, None
