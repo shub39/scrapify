@@ -14,7 +14,7 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 makaut_url = 'https://www.makautexam.net/announcement.html'
-makaut_path = 'makaut_anchors.csv'
+makaut_path = 'data.csv'
 
 @bot.command(name="purge")
 async def purge(ctx, messages: int):
@@ -36,7 +36,10 @@ async def roll(ctx):
 
 @bot.command(name='fetch')
 async def student_details(ctx, name: str):
-    student = scraper.get_student_details(name)
+    if name == "random":
+        student = scraper.get_student_details(str(random.randint(1, 61)))
+    else: 
+        student = scraper.get_student_details(name)
     if student:
         message = "**Student details found:**\n"
         for key, value in student.items():
@@ -44,6 +47,12 @@ async def student_details(ctx, name: str):
         await ctx.send(message)
     else:
         await ctx.send("Student not found.")
+
+@bot.command(name='bday')
+async def bday(ctx):
+    bday = scraper.get_nearest_birthday()
+    message = f"Next Birthday is on **{bday[1]}** of **{bday[0]}** :cake:\n"
+    await ctx.send(message)
 
 @bot.command(name="makaut")
 async def update_data(ctx):
@@ -91,3 +100,4 @@ async def before_scheduled_task():
     await bot.wait_until_ready()
 
 bot.run(os.getenv("BOT_TOKEN"))
+
