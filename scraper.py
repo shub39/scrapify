@@ -6,9 +6,9 @@ import time
 import pyexcel
 
 
-def get_student_details(name_or_roll):
+def get_student_details(name_or_roll, file_name):
     try:
-        data = pyexcel.get_sheet(file_name='DS_DATA.ods')
+        data = pyexcel.get_sheet(file_name = file_name)
         name_column_index = None
         roll_column_index = None
         for index, cell_value in enumerate(data.row[0]):
@@ -58,7 +58,8 @@ def read_data_from_csv(file_path):
     data = {}
     with open(file_path, mode='r') as file:
         reader = csv.reader(file)
-        next(reader)  
+        if reader == {}:
+            next(reader)  
         for row in reader:
             link, content = row
             data[link] = content
@@ -71,9 +72,9 @@ def write_data_to_csv(file_path, data):
         for link, content in data.items():
             writer.writerow([link, content])
             
-def get_nearest_birthday():
+def get_nearest_birthday(file_name):
     try:
-        data = pyexcel.get_sheet(file_name='DS_DATA.ods')
+        data = pyexcel.get_sheet(file_name = file_name)
         bday_column_index = None
         name_column_index = None
         for index, cell_value in enumerate(data.row[0]):
