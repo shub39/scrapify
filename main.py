@@ -13,8 +13,30 @@ intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
-makaut_url = 'https://www.makautexam.net/announcement.html'
-makaut_path = 'data.csv'
+
+# Dont't Edit Above this
+makaut_url = os.getenv("SITE")
+data_path = os.getenv("DATA")
+bot.owner_id = os.getenv("USER_ID")
+# Don't Edit Below this
+
+makaut_path = "data.csv"
+
+if not os.path.exists(makaut_path):
+    with open(makaut_path, 'w') as file:
+        pass
+
+@bot.event
+async def on_ready():
+    print(f"Sylvian's presence is strong. Summoner's ID: {bot.owner_id}")
+
+@bot.command(name='shut')
+async def shutdown_bot(ctx):
+    if str(ctx.author.id) == str(bot.owner_id):
+        await ctx.send("I am always there...")
+        await bot.close()
+    else:
+        await ctx.send("You did not summon me...")
 
 @bot.command(name="purge")
 async def purge(ctx, messages: int):
@@ -22,12 +44,18 @@ async def purge(ctx, messages: int):
         await ctx.channel.purge(limit=messages + 1)
         await ctx.send(f"Deleted {messages} messages.")
     else:
-        await ctx.send("You do not have permission to use this command.")
+        await ctx.send("You do not seem to have the privilege...")
 
 @bot.command(name='coin')
 async def flipcoin(ctx):
     result = random.choice(['Heads', 'Tails'])
-    await ctx.send(f"The coin landed on: **{result}**")
+    if result == 'Tails':
+        gif = f"https://tenor.com/view/fear-and-hunger-coin-toss-coin-tails-gif-3319076472075751918"
+    else:
+        gif = f"https://tenor.com/view/fear-and-hunger-coin-toss-coin-toss-heads-gif-2501105449971185509"
+    await ctx.send(result)
+    await ctx.send(gif)
+    
 
 @bot.command(name='roll')
 async def roll(ctx):
@@ -37,9 +65,9 @@ async def roll(ctx):
 @bot.command(name='fetch')
 async def student_details(ctx, name: str):
     if name == "random":
-        student = scraper.get_student_details(str(random.randint(1, 61)))
+        student = scraper.get_student_details(str(random.randint(1, 61)), data_path)
     else: 
-        student = scraper.get_student_details(name)
+        student = scraper.get_student_details(name, data_path)
     if student:
         message = "**Student details found:**\n"
         for key, value in student.items():
@@ -50,7 +78,7 @@ async def student_details(ctx, name: str):
 
 @bot.command(name='bday')
 async def bday(ctx):
-    bday = scraper.get_nearest_birthday()
+    bday = scraper.get_nearest_birthday(data_path)
     message = f"Next Birthday is on **{bday[1]}** of **{bday[0]}** :cake:\n"
     await ctx.send(message)
 
@@ -80,6 +108,12 @@ async def quote(ctx):
     else:
         await ctx.send("Failed to fetch a quote.")
 
+
+@bot.command(name='anon')
+async def send_anonymous_message(ctx, *, message):
+    await ctx.message.delete()
+    await ctx.send(f"Someone said: {message}")
+
 @tasks.loop(hours=6)
 async def scheduled_task():
     channel = discord.utils.get(bot.get_all_channels(), name='makaut-updates')
@@ -100,4 +134,3 @@ async def before_scheduled_task():
     await bot.wait_until_ready()
 
 bot.run(os.getenv("BOT_TOKEN"))
-
