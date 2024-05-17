@@ -1,8 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
+from datetime import datetime
 import csv
-import time
 import pyexcel
 
 

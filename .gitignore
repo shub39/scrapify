@@ -1,0 +1,6 @@
+.venv
+.env
+.gitignore
+data.csv
+.idea
+DS_DATA.ods
