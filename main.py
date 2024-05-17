@@ -15,15 +15,15 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Dont't Edit Above this
-makaut_url = os.getenv("SITE")
+URL = os.getenv("SITE")
 data_path = os.getenv("DATA")
 bot.owner_id = os.getenv("USER_ID")
 # Don't Edit Below this
 
-makaut_path = "data.csv"
+DATA = "data.csv"
 
-if not os.path.exists(makaut_path):
-    with open(makaut_path, 'w') as file:
+if not os.path.exists(DATA):
+    with open(DATA, 'w') as file:
         pass
 
 @bot.event
@@ -84,15 +84,15 @@ async def bday(ctx):
 
 @bot.command(name="makaut")
 async def update_data(ctx):
-    new_data = scraper.fetch_data_from_website(makaut_url)
-    previous_data = scraper.read_data_from_csv(makaut_path)
+    new_data = scraper.fetch_data_from_website(URL)
+    previous_data = scraper.read_data_from_csv(DATA)
     new_links = [link for link in new_data if link not in previous_data]
     new_content = [(link, new_data[link]) for link in new_links]
-    scraper.write_data_to_csv(makaut_path, new_data)
+    scraper.write_data_to_csv(DATA, new_data)
     if not new_links:
         await ctx.send("No new links.")
     else:
-        message = f"Scraping makaut's website: {makaut_url}\n"
+        message = f"Scraping makaut's website: {URL}\n"
         message += "New links and content:\n"
         for link, content in new_content:
             message += f"Content: **{content}**\n"
@@ -113,24 +113,5 @@ async def quote(ctx):
 async def send_anonymous_message(ctx, *, message):
     await ctx.message.delete()
     await ctx.send(f"Someone said: {message}")
-
-@tasks.loop(hours=6)
-async def scheduled_task():
-    channel = discord.utils.get(bot.get_all_channels(), name='makaut-updates')
-    new_data = scraper.fetch_data_from_website(makaut_url)
-    previous_data = scraper.read_data_from_csv(makaut_path)
-    new_links = [link for link in new_data if link not in previous_data]
-    new_content = [(link, new_data[link]) for link in new_links]
-    scraper.write_data_to_csv(makaut_path, new_data)
-    if new_links:
-        message = f"Scraping makaut's website: {makaut_url}\n"
-        message += "New links and content:\n"
-        for link, content in new_content:
-            message += f"Content: **{content}**\n"
-        await channel.send(message)
-
-@scheduled_task.before_loop
-async def before_scheduled_task():
-    await bot.wait_until_ready()
 
 bot.run(os.getenv("BOT_TOKEN"))
