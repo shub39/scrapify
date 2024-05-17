@@ -21,7 +21,7 @@ def get_student_details(name_or_roll, file_name):
             if row_index == 0:
                 continue
             if name_or_roll.isdigit():
-                if int(name_or_roll) > 10:
+                if int(name_or_roll) >= 10:
                     roll = "120305230" + name_or_roll
                 else:
                     roll = "1203052300" + name_or_roll
@@ -40,6 +40,17 @@ def get_student_details(name_or_roll, file_name):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+
+def get_students_details(roll_numbers_str, parameter, file_name):
+    roll_numbers = roll_numbers_str.split(',')
+    result = {}
+    for roll_number in roll_numbers:
+        student_details = get_student_details(roll_number.strip(), file_name)
+        if student_details and parameter in student_details:
+            result[roll_number.strip()] = student_details[parameter]
+        else:
+            result[roll_number.strip()] = None
+    return result
 
 def fetch_data_from_website(url):
     response = requests.get(url)

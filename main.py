@@ -42,7 +42,6 @@ async def shutdown_bot(ctx):
 async def purge(ctx, messages: int):
     if ctx.author.guild_permissions.manage_messages:
         await ctx.channel.purge(limit=messages + 1)
-        await ctx.send(f"Deleted {messages} messages.")
     else:
         await ctx.send("You do not seem to have the privilege...")
 
@@ -75,6 +74,19 @@ async def student_details(ctx, name: str):
         await ctx.send(message)
     else:
         await ctx.send("Student not found.")
+
+
+@bot.command(name='list')
+async def list_details(ctx, parameter: str, roll_numbers_str: str):
+    results = scraper.get_students_details(roll_numbers_str, parameter, data_path)
+    message = ""
+    for roll_number, detail in results.items():
+        if detail:
+            message += f"**{roll_number}**: {detail}\n"
+        else:
+            message += f"**{roll_number}**: Not found or no {parameter}\n"
+    await ctx.send(message)
+
 
 @bot.command(name='bday')
 async def bday(ctx):
