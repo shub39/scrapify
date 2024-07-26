@@ -82,43 +82,50 @@ def write_data_to_csv(file_path, data):
         for link, content in data.items():
             writer.writerow([link, content])
             
-def get_nearest_birthday(file_name):
+def get_nearest_birthday(file_name, skip=0):
     try:
-        data = pyexcel.get_sheet(file_name = file_name)
+        data = pyexcel.get_sheet(file_name=file_name)
         bday_column_index = None
         name_column_index = None
+        
         for index, cell_value in enumerate(data.row[0]):
             if cell_value.lower() == 'bday':
                 bday_column_index = index
             elif cell_value.lower() == 'name':
                 name_column_index = index
+                
         if bday_column_index is None or name_column_index is None:
-            return None, None  
+            return None, None
+        
         today = datetime.now().date()
-        nearest_birthday = None
-        nearest_days = float('inf')
-        nearest_name = None
+        birthdays = []
+        
         for row_index, row in enumerate(data):
             if row_index == 0:
                 continue
             bday_str = str(row[bday_column_index])
             try:
-                bday = datetime.strptime(bday_str, '%Y-%m-%d').date()  
+                bday = datetime.strptime(bday_str, '%Y-%m-%d').date()
             except ValueError:
                 try:
                     bday = datetime.strptime(bday_str, '%Y/%m/%d').date()
                 except ValueError:
-                    continue 
+                    continue
             bday = bday.replace(year=today.year)
             if bday < today:
                 bday = bday.replace(year=today.year + 1)
             days_until_bday = (bday - today).days
-            if days_until_bday < nearest_days:
-                nearest_days = days_until_bday
-                nearest_birthday = bday
-                nearest_name = row[name_column_index]
+            birthdays.append((days_until_bday, bday, row[name_column_index]))
+        
+        birthdays.sort()
+        
+        if skip >= len(birthdays):
+            return None, None
+        
+        nearest_days, nearest_birthday, nearest_name = birthdays[skip]
+        
         if nearest_birthday:
-            nearest_birthday_str = nearest_birthday.strftime('%d-%m')  
+            nearest_birthday_str = nearest_birthday.strftime('%d-%m')
             return nearest_name, nearest_birthday_str
         else:
             return None, None

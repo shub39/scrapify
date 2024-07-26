@@ -89,8 +89,8 @@ async def list_details(ctx, parameter: str, roll_numbers_str: str):
 
 
 @bot.command(name='bday')
-async def bday(ctx):
-    bday = scraper.get_nearest_birthday(data_path)
+async def bday(ctx, skip: int = 0):
+    bday = scraper.get_nearest_birthday(data_path, skip)
     message = f"Next Birthday is on **{bday[1]}** of **{bday[0]}** :cake:\n"
     await ctx.send(message)
 
