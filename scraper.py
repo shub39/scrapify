@@ -13,7 +13,7 @@ def get_student_details(name_or_roll, file_name):
         for index, cell_value in enumerate(data.row[0]):
             if cell_value.lower() == 'name':
                 name_column_index = index
-            elif cell_value.lower() == 'uni roll':
+            elif cell_value.lower() == 'uni_roll':
                 roll_column_index = index
         if name_column_index is None or roll_column_index is None:
             return None  
